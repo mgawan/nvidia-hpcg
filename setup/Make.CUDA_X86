@@ -108,13 +108,13 @@ BINdir       = $(TOPdir)/bin
 #
 
 NVPL_SPARSE_INC=$(NVPL_PATH)/include
-NVPL_SPARSE_LIB=$(NVPL_PATH)/lib
+NVPL_SPARSE_LIB=$(NVPL_PATH)/lib64
 
 HPCG_INCLUDES = -I$(INCdir) -I$(INCdir)/$(arch) -I$(MPdir)/include  $(CRAY_CUDATOOLKIT_INCLUDE_OPTS)
 HPCG_LIBS     = -L${MPlib} -lmpi
 
 HPCG_INCLUDES += -I$(CUDA_HOME)/include -I$(Mathdir)/include
-HPCG_LIBS += -L$(Mathdir)/lib  -lcuda -lcusparse -lcublas -lcublasLt  -L$(CUDA_HOME)/lib64
+HPCG_LIBS += -L$(Mathdir)/lib64  -lcuda -lcusparse -lcublas -lcublasLt  -L$(CUDA_HOME)/lib64
 
 ifeq ($(USE_NCCL), 1)
     HPCG_INCLUDES += -I$(NCCLdir)/include

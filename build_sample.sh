@@ -15,32 +15,32 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-export CXX_PATH=/usr
-export PATH=${CXX_PATH}/bin:${PATH}
+# export CXX_PATH=/opt/nvidia/hpc_sdk/Linux_x86_64/24.5/compilers/bin/
+# export PATH=${CXX_PATH}/bin:${PATH}
 
 if [[ -z "${MPI_PATH}" ]]; then
-    export MPI_PATH=/path/to/mpi #Change this to correct MPI path
+    export MPI_PATH=${CRAY_MPICH_PREFIX} #Change this to correct MPI path
 fi
 
-if [[ -z "${CUDA_PATH}" ]]; then
-    export MATHLIBS_PATH=/path/to/mathlibs #Change this to correct CUDA mathlibs
+if [[ -z "${MATHLIBS_PATH}" ]]; then
+    export MATHLIBS_PATH=${NVMATHLIBS} #Change this to correct CUDA mathlibs
 fi
 
 if [[ -z "${NCCL_PATH}" ]]; then
-    export NCCL_PATH=/path/to/nccl #Change to correct NCCL path
+    export NCCL_PATH=${NVIDIA_PATH}/comm_libs/nccl #Change to correct NCCL path
 fi
 
 if [[ -z "${CUDA_PATH}" ]]; then
-    export CUDA_PATH=/path/to/cuda #Change this to correct CUDA path
+    export CUDA_PATH=${CUDA_HOME} #Change this to correct CUDA path
 fi
 
 if [[ -z "${NVPL_SPARSE_PATH}" ]]; then
-    export NVPL_SPARSE_PATH=/path/to/nvpllibs #Change this to correct NVPL mathlibs
+    export NVPL_SPARSE_PATH=${NVMATHLIBS} #Change this to correct NVPL mathlibs
 fi
 
-export PATH=${CUDA_PATH}/bin:${PATH}
-export LD_LIBRARY_PATH=${CUDA_PATH}/lib64:${LD_LIBRARY_PATH}
-export LD_LIBRARY_PATH=${NVPL_SPARSE_PATH}/lib:${LD_LIBRARY_PATH}
+# export PATH=${CUDA_PATH}/bin:${PATH}
+# export LD_LIBRARY_PATH=${CUDA_PATH}/lib64:${LD_LIBRARY_PATH}
+# export LD_LIBRARY_PATH=${NVPL_SPARSE_PATH}/lib:${LD_LIBRARY_PATH}
 
 #xhpcg binary will be located in build/bin
 mkdir -p build
@@ -58,7 +58,7 @@ fi
 ######## USE Grace CPU? ############
 # 1:         Yes
 # O:         No 
-export USE_GRACE=1
+export USE_GRACE=0
 if [[ $6 == "0" ]]; then
     export USE_GRACE=0
 fi
@@ -83,6 +83,7 @@ export build_B100=0
 if [[ $8 == "1" ]]; then
     export build_B100=1
 fi
+
 
 make -j 16 \
     USE_CUDA=${USE_CUDA} \

@@ -15,36 +15,36 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-export CXX_PATH=/usr
-export PATH=${CXX_PATH}/bin:${PATH}
+# export CXX_PATH=/usr
+# export PATH=${CXX_PATH}/bin:${PATH}
 
 if [[ -z "${MPI_PATH}" ]]; then
-    export MPI_PATH=/path/to/mpi #Change this to correct MPI path
+    export MPI_PATH=${CRAY_MPICH_PREFIX} #Change this to correct MPI path
 fi
 
-if [[ -z "${CUDA_PATH}" ]]; then
-    export MATHLIBS_PATH=/path/to/mathlibs #Change this to correct CUDA mathlibs
+if [[ -z "${MATHLIBS_PATH}" ]]; then
+    export MATHLIBS_PATH=${NVMATHLIBS} #Change this to correct CUDA mathlibs
 fi
 
 if [[ -z "${NCCL_PATH}" ]]; then
-    export NCCL_PATH=/path/to/nccl #Change to correct NCCL path
+    export NCCL_PATH=${NVIDIA_PATH}/comm_libs/nccl #Change to correct NCCL path
 fi
 
 if [[ -z "${CUDA_PATH}" ]]; then
-    export CUDA_PATH=/path/to/cuda #Change this to correct CUDA path
+    export CUDA_PATH=${CUDA_HOME} #Change this to correct CUDA path
 fi
 
-if [[ -z "${NVPL_SPARSE}" ]]; then
-    export NVPL_SPARSE=/path/to/nvpllibs #Change this to correct NVPL mathlibs
+if [[ -z "${NVPL_SPARSE_PATH}" ]]; then
+    export NVPL_SPARSE_PATH=${NVMATHLIBS} #Change this to correct NVPL mathlibs
 fi
 
 #Please fix, if needed
-export CUDA_BLAS_VERSION=${CUDA_BUILD_VERSION:-12.2}
-export LD_LIBRARY_PATH=${MATHLIBS_PATH}/${CUDA_BLAS_VERSION}/lib64/:${LD_LIBRARY_PATH}
+# export CUDA_BLAS_VERSION=${CUDA_BUILD_VERSION:-12.4}
+export LD_LIBRARY_PATH=${MATHLIBS_PATH}/lib64/:${LD_LIBRARY_PATH}
 export PATH=${CUDA_PATH}/bin:${PATH}
 export LD_LIBRARY_PATH=${CUDA_PATH}/lib64:${LD_LIBRARY_PATH}
 export LD_LIBRARY_PATH=${NCCL_PATH}/lib:${LD_LIBRARY_PATH}
-export LD_LIBRARY_PATH=${NVPL_SPARSE}/lib:${LD_LIBRARY_PATH}
+# export LD_LIBRARY_PATH=${NVPL_SPARSE}/lib:${LD_LIBRARY_PATH}
 
 ext="--mca pml ^ucx --mca btl ^openib,smcuda -mca coll_hcoll_enable 0 -x coll_hcoll_np=0 --bind-to none"
 
@@ -57,8 +57,8 @@ dir="bin/"
 nx=512 #Large problem size x
 ny=512 #Large problem size y
 nz=288 #Large problem size z
-mpirun --oversubscribe ${ext} -np 1 ${dir}/hpcg.sh  --exec-name ${dir}/xhpcg \
- --nx $nx --ny $ny --nz $nz --rt 10 --b 0
+# mpirun --oversubscribe ${ext} -np 1 ${dir}/hpcg.sh  --exec-name ${dir}/xhpcg \
+#  --nx $nx --ny $ny --nz $nz --rt 10 --b 0
 ########################################################################################
 
 #Sample on Grace Hopper x4
@@ -71,16 +71,18 @@ nz=288 #Large problem size z, assumed for the GPU
 #1 GPUOnly
 #---------#
 np=4  #Total number of ranks
-mpirun --oversubscribe ${ext} -np $np ${dir}/hpcg-aarch64.sh  --exec-name ${dir}/xhpcg \
- --nx $nx --ny $ny --nz $nz --rt 10 --b 0 --exm 0 --p2p 0 \
- --mem-affinity 0:1:2:3 --cpu-affinity 0-71:72-143:144-215:216-287
-
+set -x
+srun --ntasks=4 --cpus-per-task=32 --cpu-bind=rank bin/hpcg-aarch64.sh --exec-name bin/xhpcg --nx 128 --ny 512 --nz 144 --rt 10 --b 0 --exm 0 --p2p 0
+# srun --oversubscribe ${ext} -np $np ${dir}/hpcg-aarch64.sh  --exec-name ${dir}/xhpcg \
+#  --nx $nx --ny $ny --nz $nz --rt 10 --b 0 --exm 0 --p2p 0 \
+#  --mem-affinity 0:1:2:3 --cpu-affinity 0-71:72-143:144-215:216-287
+set +x
 #2 GraceOnly
 #-----------#
 np=4  #Total number of ranks
-mpirun --oversubscribe ${ext} -np $np ${dir}/hpcg-aarch64.sh  --exec-name ${dir}/xhpcg-cpu \
- --nx $nx --ny $ny --nz $nz --rt 10 --b 0 --exm 0 --p2p 0 \
- --mem-affinity 0:1:2:3 --cpu-affinity 0-71:72-143:144-215:216-287
+# mpirun --oversubscribe ${ext} -np $np ${dir}/hpcg-aarch64.sh  --exec-name ${dir}/xhpcg-cpu \
+#  --nx $nx --ny $ny --nz $nz --rt 10 --b 0 --exm 0 --p2p 0 \
+#  --mem-affinity 0:1:2:3 --cpu-affinity 0-71:72-143:144-215:216-287
 
 #3 Hetrogeneous (GPU + Grace)
 #----------------------------#
@@ -94,6 +96,6 @@ g2c=64 #Based on dif_dim=2 and lpm=1 --> Grace rank local problem size is $nx x 
 npx=4 #number of ranks in the x direction
 npy=2 #number of ranks in the y direction
 npz=1 #number of ranks in the z direction
-mpirun --oversubscribe ${ext} -np $np ${dir}/hpcg-aarch64.sh  --exec-name ${dir}/xhpcg \
- --nx $nx --ny $ny --nz $nz --rt 10 --b 0 --p2p 0 --exm $exm --lpm $lpm --g2c $g2c --ddm $diff_dim --npx $npx --npy $npy --npz $npz \
- --mem-affinity 0:0:1:1:2:2:3:3 --cpu-affinity 0-7:8-71:72-79:80-143:144-151:152-215:216-223:224-287
+# mpirun --oversubscribe ${ext} -np $np ${dir}/hpcg-aarch64.sh  --exec-name ${dir}/xhpcg \
+#  --nx $nx --ny $ny --nz $nz --rt 10 --b 0 --p2p 0 --exm $exm --lpm $lpm --g2c $g2c --ddm $diff_dim --npx $npx --npy $npy --npz $npz \
+#  --mem-affinity 0:0:1:1:2:2:3:3 --cpu-affinity 0-7:8-71:72-79:80-143:144-151:152-215:216-223:224-287
